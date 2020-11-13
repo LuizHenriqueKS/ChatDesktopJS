@@ -1,5 +1,5 @@
 {
-    "srcMap": {
+    "execMap": {
         "ts": "node --inspect -r ts-node/register"
     }
 }

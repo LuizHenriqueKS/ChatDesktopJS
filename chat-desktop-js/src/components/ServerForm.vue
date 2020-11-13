@@ -1,5 +1,5 @@
 <template>
-  <v-card class="serverFormCard" :loading="loading" :disabled="loading">
+  <v-card class="dialogPequeno" :loading="loading" :disabled="loading">
     <v-card-title>
       <div>Bem-vindo</div>
     </v-card-title>
@@ -8,6 +8,7 @@
       <v-text-field
         v-model="enderecoServidor"
         placeholder="ws://localhost:8080/"
+        autofocus
         :error-messages="enderecoServidorErro"
         @keyup.enter="conectar"
       />
@@ -20,14 +21,19 @@
 
 <script>
 export default {
+  name: "ServerForm",
+
   props: {
     loading: { required: true, default: false, type: Boolean },
+    value: { type: String, default: "" },
   },
 
-  data: () => ({
-    enderecoServidor: "",
-    enderecoServidorErro: "",
-  }),
+  data: function () {
+    return {
+      enderecoServidor: this.value,
+      enderecoServidorErro: "",
+    };
+  },
 
   computed: {
     isPort() {
@@ -48,6 +54,7 @@ export default {
         if (this.isPort) {
           this.enderecoServidor = `ws://localhost:${this.enderecoServidor}`;
         }
+        this.$emit("input", this.enderecoServidor);
         this.$emit("conectar", { enderecoServidor: this.enderecoServidor });
       }
     },
@@ -56,9 +63,6 @@ export default {
 </script>
 
 <style scoped>
-.serverFormCard {
-  width: 400px;
-}
 .mensagemErro {
   font-size: 14px;
 }
