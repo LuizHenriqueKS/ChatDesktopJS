@@ -2,6 +2,9 @@ class ChatClient {
 
     enterChatListener = [];
     textMessageListener = [];
+    usersInfoListener = [];
+    disconnectListener = [];
+    usernameAlreadyExistsListener = []
 
     constructor() {
         this.__connected = false;
@@ -53,8 +56,13 @@ class ChatClient {
                 this.onEnterChat(json);
             } else if (type == "text_message") {
                 this.onTextMessage(json);
+            } else if (type == "users_info") {
+                this.onUsersInfo(json);
+            } else if (type == "username_already_exists"){
+                this.onUsernameAlreadyExists();
             }
         } catch (e) {
+            console.error(e);
             this.disconnect();
         }
     }
@@ -67,8 +75,17 @@ class ChatClient {
         this.textMessageListener.forEach(l => l(message));
     }
 
+    onUsersInfo(usersInfo) {
+        this.usersInfoListener.forEach(l => l(usersInfo));
+    }
+
+    onUsernameAlreadyExists(){
+        this.usernameAlreadyExistsListener.forEach(l=>l());
+    }
+
     onDisconnect() {
         this.__connected = false;
+        this.disconnectListener.forEach(l=>l());
     }
 
     updateUserInfo(userInfo) {

@@ -12,14 +12,14 @@
         leave-active-class="animated bounceOutRight"
         mode="out-in"
       >
-        <Center key="SERVER_FORM" v-show="telaExibir == 'SERVER_FORM'">
+        <Center key="SERVER_FORM" v-if="telaExibir == 'SERVER_FORM'">
           <ServerForm
             v-model="enderecoServidor"
             :loading="conectando"
             @conectar="conectar"
           />
         </Center>
-        <Center key="USER_FORM" v-show="telaExibir == 'USER_FORM'">
+        <Center key="USER_FORM" v-if="telaExibir == 'USER_FORM'">
           <UserForm
             v-model="infoUsuario"
             :loading="enviandoInfoUsuarios"
@@ -27,8 +27,8 @@
             @cancelar="disconectar"
           />
         </Center>
-        <Center key="CHAT_FORM" v-show="telaExibir == 'CHAT_FORM'">
-          <ChatForm :infoUsuario="infoUsuario" ref="chatForm" />
+        <Center key="CHAT_FORM" v-if="telaExibir == 'CHAT_FORM'">
+          <ChatForm :infoUsuario="infoUsuario" :usuarios="usuarios" ref="chatForm" />
         </Center>
       </transition-group>
     </v-main>
@@ -64,12 +64,15 @@ export default {
     infoUsuario: {
       nomeUsuario: "",
     },
+    usuarios: [],
   }),
 
   watch: {
     telaExibir() {
       if (this.telaExibir == TelaExibir.CHAT_FORM) {
         this.$refs.chatForm.onShow();
+      } else if (this.telaExibir== TelaExibir.SERVER_FORM){
+        this.chatClient.disconnect();
       }
     },
   },
@@ -79,6 +82,9 @@ export default {
       this.telaExibir = TelaExibir.USER_FORM;
     }
     chatClient.enterChatListener.push(() => this.onEntrouChat());
+    chatClient.disconnectListener.push(() => this.onDesconectou());
+    chatClient.usernameAlreadyExistsListener.push(() => this.onNomeUsuarioJaUsado());
+    chatClient.usersInfoListener = [this.onUsersInfo];
   },
 
   methods: {
@@ -109,9 +115,9 @@ export default {
       chatClient.updateUserInfo({ name: this.infoUsuario.nomeUsuario });
       this.enviandoInfoUsuarios = true;
       setTimeout(() => {
-        if (this.telaExibir == TelaExibir.USER_FORM) {
+        if (this.enviandoInfoUsuarios && this.telaExibir == TelaExibir.USER_FORM) {
           this.telaExibir = TelaExibir.SERVER_FORM;
-          this.exibirMensagemErro("Erro na conexão com o servidor.");
+          this.exibirMensagemErroConexao();
           this.enviandoInfoUsuarios = false;
           chatClient.disconnect();
         }
@@ -123,10 +129,39 @@ export default {
       this.enviandoInfoUsuarios = false;
     },
 
+    onDesconectou() {
+      this.telaExibir = TelaExibir.SERVER_FORM;
+      this.conectando = false;
+      this.exibirMensagemErro("Você foi desconectado do servidor.");
+    },
+
+    onNomeUsuarioJaUsado(){
+      this.telaExibir = TelaExibir.USER_FORM;
+      this.conectando = false;
+      this.enviandoInfoUsuarios = false;
+      this.exibirMensagemErro("O nome de usuário informado já está sendo utilizado.");
+    },
+
     exibirMensagemErro(mensagem) {
       this.mensagemErro = mensagem;
       this.mensagemErroVisivel = true;
     },
+
+    exibirMensagemErroConexao() {
+      this.exibirMensagemErro("Erro na conexão com o servidor.");
+    },
+
+    onUsersInfo(usersInfo){
+      const todosUsuarios = usersInfo.users.map(u=>({
+        nomeUsuario: u.name,
+        voce: u.your
+      }));
+      const usuarioLogadoIndice = todosUsuarios.findIndex(u=>u.voce);
+      const usuarioLogado = todosUsuarios[usuarioLogadoIndice];
+      const outrosUsuarios = todosUsuarios.filter(u=>!u.voce);
+      this.usuarios = [usuarioLogado, ...outrosUsuarios];
+    }
+
   },
 };
 </script>

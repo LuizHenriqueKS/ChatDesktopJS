@@ -1,5 +1,3 @@
 export default class UserInfo {
-
-    name: String = "";
-
+    name: String = '';
 };
