@@ -67,7 +67,13 @@ app.on('ready', async () => {
       console.error('Vue Devtools failed to install:', e.toString())
     }
   }
-  createWindow()
+  createWindow();
+  const { Notification } = require('electron')
+  const notification = {
+    title: 'Basic Notification',
+    body: 'Notification from the Main process'
+  }
+  new Notification(notification).show();
 })
 
 // Exit cleanly on request from parent process in development mode.

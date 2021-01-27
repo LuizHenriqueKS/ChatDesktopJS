@@ -70,8 +70,8 @@ export default {
   watch: {
     telaExibir() {
       if (this.telaExibir == TelaExibir.CHAT_FORM) {
-        this.$refs.chatForm.onShow();
-      } else if (this.telaExibir== TelaExibir.SERVER_FORM){
+        setTimeout(()=>this.$refs.chatForm.onShow(), 10);
+      } else if (this.telaExibir == TelaExibir.SERVER_FORM){
         this.chatClient.disconnect();
       }
     },
